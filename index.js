@@ -51,9 +51,9 @@ const insert = () => {
           try {
               let data = JSON.parse(json)
               let body = JSON.stringify(data)
-              // appendFile(data.name, './json.txt')
-              //  executingСommands(`INSERT INTO ${TABLENAME} (name, body)
-              //       VALUES('${data.name}', '${body}'); `)
+              appendFile(data.name, './json.txt')
+               executingСommands(`INSERT INTO ${TABLENAME} (name, body)
+                    VALUES('${data.name}', '${body}'); `)
           } catch (e) {
               console.log('Error parsing JSON!')
               stop = true
