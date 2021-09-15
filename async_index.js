@@ -1,14 +1,13 @@
 'use strict';
 
-const { Pool } = require('pg')
+const { Client } = require('pg')
 const https = require('https')
-const { appendFile } = require('fs')
 const PORT = process.env.PORT || 3000
 const URL = 'https://rickandmortyapi.com/api/character/'
 
 const TABLENAME = 'erjigit17'
 
-const pool = new Pool({
+const client = new Client({
   host: '127.0.0.1',
   port: 5432,
   database: 'erjigit',
@@ -16,19 +15,20 @@ const pool = new Pool({
   password: '',
 })
 
-const executingСommands = (command) => {
-  pool.query(command, (err, res) => {
-    if (err) { throw err }
-    console.dir({res})
-    // pool.end()??
-  })
+
+async function execute(command) {
+  await client.connect()
+  console.log('Connected to  DB')
+  await client.query(command)
+  await client.end()
 }
 
+
 const dropTable = () => {
-  executingСommands(`DROP TABLE IF EXISTS ${TABLENAME};`)}
+  execute(`DROP TABLE IF EXISTS ${TABLENAME};`)}
 
 const createTable = () => {
-  executingСommands(
+  execute(
     `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
     id SERIAL PRIMARY KEY,
     name text,
@@ -40,7 +40,7 @@ const insert = () => {
   let id = 1  // 
   let stop = false // stop flag
 
-  while (!stop && id < 9 ) {
+  while (!stop && id < 3 ) {
     https.get(URL + id, (res) => {
       let json = ''
       res.on('data', function (chunk) {
@@ -51,9 +51,8 @@ const insert = () => {
           try {
               let data = JSON.parse(json)
               let body = JSON.stringify(data)
-              // appendFile(data.name, './json.txt')
-              //  executingСommands(`INSERT INTO ${TABLENAME} (name, body)
-              //       VALUES('${data.name}', '${body}'); `)
+              execute(`INSERT INTO ${TABLENAME} (name, body)
+                    VALUES('${data.name}', '${body}'); `)
           } catch (e) {
               console.log('Error parsing JSON!')
               stop = true
