@@ -4,11 +4,12 @@
   "description": "A script that will add all the characters of Rick and Morty to the database.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
   "author": "Erjigit Imamov",
   "license": "MIT",
   "dependencies": {
-
+    "pg": "^8.7.1"
   }
 }
