@@ -1,8 +1,6 @@
 const { Pool } = require('pg')
-const axios = require('axios')
 const https = require('https')
-const { resolve } = require('path')
-const URL = 'https://rickandmortyapi.com/api/character/'
+const URL = 'https://rickandmortyapi.com/api/character'
 
 const TABLENAME = 'erjigit17'
 
@@ -13,9 +11,9 @@ const pool = new Pool({
   user: 'erjigit',
   password: '',
 })
-function getCharacterData(id) {
+function getCharactersData() {
   return new Promise((resolve, reject) => {
-    https.get(URL + id, async response => {
+    https.get(URL, async response => {
       const chunks = []
       for await (const chunk of response) {
         chunks.push(chunk)
@@ -24,13 +22,14 @@ function getCharacterData(id) {
     })
   })
 }
-function storeCharacterData(jsonData) {
-  const result = JSON.parse(jsonData)
-
-  let command = `INSERT INTO ${TABLENAME} (name, body)
-  VALUES('${result.name}', '${JSON.stringify(result)}');`
-
+//, "created": "${r.created}
+function storeCharactersData(jsonData) {
+  const {results} = JSON.parse(jsonData)
+ 
+  let command = 
+  `INSERT INTO ${TABLENAME} (name, body)VALUES${results.map(r => `('${r.name}', '{"id": ${r.id}, "name": "${r.name}", "status": "${r.status}", "species": "${r.species}", "type": "${r.type}", "gender": "${r.gender}", "origin": {"name": "${r.origin.name}", "url": "${r.origin.url}"}, "image": "${r.image}", "episode": ${JSON.stringify(r.episode)}, "url": "${r.url}", "created": "${r.created}" }')`).join(', ')};`
   // console.log(command)
+
   pool.query(command, (err, res) => {
     if (err) { throw err }
     console.dir({res})
@@ -38,11 +37,28 @@ function storeCharacterData(jsonData) {
   })
 }
 
-function tempJsonCreate {
-  
-}
+getCharactersData().then(storeCharactersData)
 
 
-for (let i = 1; i < 4; i++ ) {
-  getCharacterData(i).then(storeCharacterData)
+const executingСommands = (command) => {
+  pool.query(command, (err, res) => {
+    if (err) { throw err }
+    console.dir({res})
+    pool.end()
+  })
 }
+
+const dropTable = () => {
+  executingСommands(`DROP TABLE IF EXISTS ${TABLENAME};`)}
+
+const createTable = () => {
+  executingСommands(
+    `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
+    id SERIAL PRIMARY KEY,
+    name text,
+    body jsonb
+  );`)
+}
+
+// dropTable()
+// createTable()
