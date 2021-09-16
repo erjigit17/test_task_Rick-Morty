@@ -1,10 +1,9 @@
-'use strict';
+'use strict'
+
 
 const { Pool } = require('pg')
 const https = require('https')
-const { appendFile } = require('fs')
-const PORT = process.env.PORT || 3000
-const URL = 'https://rickandmortyapi.com/api/character/'
+const URL = 'https://rickandmortyapi.com/api/character'
 
 const TABLENAME = 'erjigit17'
 
@@ -18,14 +17,17 @@ const pool = new Pool({
 
 const executingСommands = (command) => {
   pool.query(command, (err, res) => {
-    if (err) { throw err }
-    console.dir({res})
-    // pool.end()??
+    if (err) {
+      throw err
+    }
+    console.dir({ res })
+    pool.end()
   })
 }
 
 const dropTable = () => {
-  executingСommands(`DROP TABLE IF EXISTS ${TABLENAME};`)}
+  executingСommands(`DROP TABLE IF EXISTS ${TABLENAME};`)
+}
 
 const createTable = () => {
   executingСommands(
@@ -33,44 +35,55 @@ const createTable = () => {
     id SERIAL PRIMARY KEY,
     name text,
     body jsonb
-  );`)
+  );`
+  )
 }
 
-const insert = () => {
-  let id = 1  // 
-  let stop = false // stop flag
-
-  while (!stop && id < 9 ) {
-    https.get(URL + id, (res) => {
-      let json = ''
-      res.on('data', function (chunk) {
-          json += chunk
-      });
-      res.on('end', () => {
-        if (res.statusCode === 200) {
-          try {
-              let data = JSON.parse(json)
-              let body = JSON.stringify(data)
-              appendFile(data.name, './json.txt')
-               executingСommands(`INSERT INTO ${TABLENAME} (name, body)
-                    VALUES('${data.name}', '${body}'); `)
-          } catch (e) {
-              console.log('Error parsing JSON!')
-              stop = true
-          }
-        } else {
-            console.log('Status:', res.statusCode)
-            stop = true
-        }
-      })
-    }).on('error', function (err) {
-        console.log('Error:', err)
-        stop = true
+function getCharactersData() {
+  return new Promise((resolve, reject) => {
+    https.get(URL, async (response) => {
+      const chunks = []
+      for await (const chunk of response) {
+        chunks.push(chunk)
+      }
+      resolve(Buffer.concat(chunks).toString())
     })
-    id++
-  }
+  })
 }
 
-insert()
-// dropTable()
-// createTable()
+function storeCharactersData(jsonData) {
+  const { results } = JSON.parse(jsonData)
+
+  let command = `INSERT INTO ${TABLENAME} (name, body)VALUES${results
+    .map(
+      (r) => // resolve bag with error #42601
+        `('${r.name}', '{"id": ${r.id}, "name": "${r.name}", "status": "${
+          r.status
+        }", "species": "${r.species}", "type": "${r.type}", "gender": "${
+          r.gender
+        }", "origin": {"name": "${r.origin.name}", "url": "${
+          r.origin.url
+        }"}, "image": "${r.image}", "episode": ${JSON.stringify(
+          r.episode
+        )}, "url": "${r.url}", "created": "${r.created}" }')`
+    )
+    .join(', ')};`
+
+  pool.query(command, (err, res) => {
+    if (err) {
+      throw err
+    }
+    console.dir({ res })
+    pool.end()
+  })
+}
+
+getCharactersData().then(storeCharactersData)
+
+const button = document.querySelector('button')
+
+let counter = 0
+button.addEventListener('click', function(){
+  counter++
+  button.textContent = counter
+})
