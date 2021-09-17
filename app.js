@@ -1,13 +1,14 @@
 'use strict'
 
-
-const { Pool } = require('pg')
+const { Client } = require('pg')
 const https = require('https')
 const URL = 'https://rickandmortyapi.com/api/character'
 
+// const client = new pg.Client("postgres://candidate:62I8anq3cFq5GYh2u4Lh@rc1c2m0keqdcncuwizmx.mdb.yandexcloud.net:6432/db1?ssl=true");
+
 const TABLENAME = 'erjigit17'
 
-const pool = new Pool({
+const client = new Client({
   host: '127.0.0.1',
   port: 5432,
   database: 'erjigit',
@@ -15,29 +16,20 @@ const pool = new Pool({
   password: '',
 })
 
-const executingСommands = (command) => {
-  pool.query(command, (err, res) => {
-    if (err) {
-      throw err
-    }
-    console.dir({ res })
-    pool.end()
-  })
-}
+client.connect()
 
-const dropTable = () => {
-  executingСommands(`DROP TABLE IF EXISTS ${TABLENAME};`)
-}
-
-const createTable = () => {
-  executingСommands(
-    `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
-    id SERIAL PRIMARY KEY,
-    name text,
-    body jsonb
-  );`
+// drop and create DB
+client
+  .query(
+    `DROP TABLE IF EXISTS ${TABLENAME};` +
+      `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
+          id SERIAL PRIMARY KEY,
+          name text,
+          body jsonb
+        );`
   )
-}
+  .then((result) => console.log(result))
+  .catch((e) => console.error(e.stack))
 
 function getCharactersData() {
   return new Promise((resolve, reject) => {
@@ -56,7 +48,9 @@ function storeCharactersData(jsonData) {
 
   let command = `INSERT INTO ${TABLENAME} (name, body)VALUES${results
     .map(
-      (r) => // resolve bag with error #42601
+      (
+        r 
+      ) =>// resolve bag with error #42601
         `('${r.name}', '{"id": ${r.id}, "name": "${r.name}", "status": "${
           r.status
         }", "species": "${r.species}", "type": "${r.type}", "gender": "${
@@ -69,21 +63,26 @@ function storeCharactersData(jsonData) {
     )
     .join(', ')};`
 
-  pool.query(command, (err, res) => {
+  client.query(command, (err, res) => {
     if (err) {
       throw err
     }
     console.dir({ res })
-    pool.end()
+    client.end()
   })
 }
 
 getCharactersData().then(storeCharactersData)
 
-const button = document.querySelector('button')
+// front================================================
 
-let counter = 0
-button.addEventListener('click', function(){
-  counter++
-  button.textContent = counter
-})
+const fs = require('fs')
+const http = require('http')
+const PORT = process.env.PORT || 3000
+
+const index = fs.readFileSync('./index.html')
+http.createServer(function (req, res) {
+  res.writeHead(200, {'Content-Type': 'text/html'})
+  res.end(index)
+}).listen(PORT, () => {console.log(`listening port: ${PORT}`)})
+

@@ -7,7 +7,26 @@
   <title>Document</title>
 </head>
 <body>
-  <button></button>
-  <script src="/index.js"></script>
+  <button>Start</button>
+  <script>
+    const button = document.querySelector('button')
+
+    let flagStart = 'started'
+    
+    button.addEventListener('click', function(){
+      button.textContent = flagStart
+      fetch('/',
+          {
+              headers: {
+                'Accept': 'text/plain',
+                'Content-Type': 'text/plain'
+              },
+              method: "POST",
+              body: flagStart
+          })
+          .then(function(res){ console.log(res) })
+          .catch(function(res){ console.log(res) })
+    })
+  </script>
 </body>
 </html>
