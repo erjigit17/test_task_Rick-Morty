@@ -1,10 +1,10 @@
 'use strict'
 
 const { Client } = require('pg')
+const EventEmitter = require('events')
 const https = require('https')
 const fs = require('fs')
 const URL = 'https://rickandmortyapi.com/api/character'
-const { Client } = require('pg')
 
 // 
 function get_data(url) {
@@ -36,18 +36,12 @@ async function getCount(){
 const sleep = (milliseconds) => {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))}
 
-
+let arr = [], count = 0, finish = false;
 function parser(pages) {
 
-  fs.writeFileSync('./parsedData.json', ``, (err) => {
-    if (err) throw err
-    console.log('Saved!')
-  })
-
   const slowing_down = async () => {
-    await sleep(500)
-    let j = 1
-    let arr = []
+    await sleep(50)
+
     for (let i = 1; i < pages; i++) {
         get_data(`${URL}/${i}`)
           .then((jsonData) => {
@@ -55,17 +49,16 @@ function parser(pages) {
             return data
           })
           .then((body) => {
-            fs.appendFile(
-              './parsedData.json',`${JSON.stringify(body)}, `,
-              (err) => {
-                if (err) throw err
-                console.log('Saved!', i, j)
-                j++
-                arr.push({id: body.id, name: body.name})
-                if (j == pages ) { startWritingToDB(arr)}
-
-              }
-            )
+            arr.push({id: body.id, name: body.name, body})
+            count++
+            console.log(body.id, count)
+            if (count + 1 == pages) {
+              finish = true
+            }
+            if(finish){
+              apiParsFinishEmitter.emit('event')
+              finish = false
+            }
           })
     }
   }
@@ -75,6 +68,13 @@ function parser(pages) {
 getCount()
 
 //====================== Database ==============================
+const apiParsFinishEmitter = new EventEmitter();
+apiParsFinishEmitter.on('event', () => {
+  console.log('======   parsing finished  ======= ')
+  startWritingToDB()
+});
+
+// const client = new pg.Client("postgres://candidate:62I8anq3cFq5GYh2u4Lh@rc1c2m0keqdcncuwizmx.mdb.yandexcloud.net:6432/db1?ssl=true");
 
 const TABLENAME = 'erjigit17'
 
@@ -86,42 +86,47 @@ const client = new Client({
   password: '',
 })
 
-client.connect()
-// drop and create DB
-client
-  .query(
-    `DROP TABLE IF EXISTS ${TABLENAME};` +
-      `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
-          id SERIAL PRIMARY KEY,
-          name text,
-          body jsonb
-        );`
-  )
-  .then((result) => console.log(result))
-  .catch((e) => console.error(e.stack))
 
 
-function startWritingToDB(arr){
-  console.log(arr)
-  const { results } = JSON.parse(jsonData)
+
+function startWritingToDB(){
+  arr.sort((a, b) => (a.id > b.id) ? 1 : -1)
+  // client.connect()
+  // // drop and create DB
+  // client
+  //   .query(
+  //     `DROP TABLE IF EXISTS ${TABLENAME};` +
+  //     `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
+  //           id SERIAL PRIMARY KEY,
+  //           name text,
+  //           body text
+  //         );`
+  //   )
+  //   .then((result) => console.log(result))
+  //   .catch((e) => console.error(e.stack))
 
 
-  let command = `INSERT INTO ${TABLENAME} (name, body)VALUES${results
-    .map(
-      (
-        r 
-      ) =>// resolve bag with error #42601
-        `('${r.name}', '{"id": ${r.id}, "name": "${r.name}", "status": "${
-          r.status
-        }", "species": "${r.species}", "type": "${r.type}", "gender": "${
-          r.gender
-        }", "origin": {"name": "${r.origin.name}", "url": "${
-          r.origin.url
-        }"}, "image": "${r.image}", "episode": ${JSON.stringify(
-          r.episode
-        )}, "url": "${r.url}", "created": "${r.created}" }')`
-    )
-    .join(', ')};`
+    for (let i = 0; i < 2; i++) {
+      let command = `INSERT INTO ${TABLENAME} (name, body) VALUES ('${arr[i].name}', '${JSON.stringify(arr[i].body)}');` 
+      // console.log(command)
+      fs.writeFileSync('./parsedData.json', command)
+  //     client.query(command, (err, res) => {
+  //     if (err) {
+  //       throw err
+  //     }
+  //     console.dir({ res })
+  //   client.end()
+  //   })
+
+  }
+}
+
+
+  // let command = `INSERT INTO ${TABLENAME} (name, body) VALUES ${arr.map((item) => `('${item.name}', '${JSON.stringify(item.body)}')`).join(', ')};`   
+  // fs.writeFileSync('./parsedData.json', command)
+
+
+  // console.log(command)
 
   // client.query(command, (err, res) => {
   //   if (err) {
@@ -130,4 +135,5 @@ function startWritingToDB(arr){
   //   console.dir({ res })
   //   client.end()
   // })
-}
+  // client.end()
+// }
