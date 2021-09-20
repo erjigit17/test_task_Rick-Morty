@@ -14,6 +14,13 @@ const pgp = require( 'pg-promise' )( {
 //   }
 // }
 
+const client = {
+host: '127.0.0.1',
+  port: 5432,
+  database: 'erjigit',
+  user: 'erjigit',
+  password: '',
+}
 
 class CSVReader {
   constructor ( filename, batchSize, columns ) {
@@ -61,7 +68,7 @@ let intializeDBAndInsert = () => {
   db.connect()
       .then( obj => {
           sco = obj;
-          let reader = new CSVReader( 'F:/data.csv' )
+          let reader = new CSVReader( './data.csv' )
           reader.read( () => reader.continue() )
       } )
       .then( data => {

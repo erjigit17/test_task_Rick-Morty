@@ -28,15 +28,12 @@ pool
 
 function startWritingToDB(){
 
-let a = `COPY ${TABLENAME}
-FROM './data.csv' 
-DELIMITER ',' 
-CSV HEADER;`
+let a = `INSERT INTO erjigit17 (name, body) VALUES ('Rick Sanchez', '{"id":1,"name":"Rick Sanchez","status":"Alive","species":"Human","type":"","gender":"Male"}');`
 
   pool.query(a, (err, res) => {
     if (err) {
-      throw err
-    }
+      pool.end()
+      throw err }
     console.dir({ res })
     pool.end()
   })
