@@ -28,7 +28,10 @@ pool
 
 function startWritingToDB(){
 
-let a = fs.readFileSync('./parsedData.json', 'UTF8')
+let a = `COPY ${TABLENAME}
+FROM './data.csv' 
+DELIMITER ',' 
+CSV HEADER;`
 
   pool.query(a, (err, res) => {
     if (err) {
