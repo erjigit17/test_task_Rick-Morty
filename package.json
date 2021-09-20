@@ -14,6 +14,7 @@
     "event-stream": "^4.0.1",
     "iconv-lite": "^0.6.3",
     "pg": "^8.7.1",
+    "pg-copy-streams": "^6.0.2",
     "pg-promise": "^10.11.0"
   }
 }

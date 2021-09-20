@@ -114,4 +114,3 @@ async function startWritingToDB(){
   await sleep(10000)
   // client.end()
 }
-

@@ -1,0 +1,3 @@
+name	body
+'Rick Sanchez'	'{JSON.stringify(item.body)}'
+'Morty Smith'	'{JSON.stringify(item.body)}'

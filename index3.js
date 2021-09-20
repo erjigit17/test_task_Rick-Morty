@@ -1,7 +1,6 @@
 'use strict'
 
 const { Client } = require('pg')
-const EventEmitter = require('events')
 const https = require('https')
 const fs = require('fs')
 const URL = 'https://rickandmortyapi.com/api/character'
@@ -27,7 +26,7 @@ function getCount(){
           return data
         })
         .then((body) => {
-          characters = 10//body.info.count
+          characters = 2//body.info.count
         })
         .then(() => {
           parser()})
@@ -42,7 +41,7 @@ async function parser() {
   let parsingEnd = false
 
   for (let i = 1; i <= characters; i++) {
-    await sleep(77)
+    await sleep(88)
     
     get_data(`${URL}/${i}`)
     .then((jsonData) => {
@@ -67,9 +66,7 @@ async function parser() {
   console.log(`time's up, received only ${arr.length} of ${characters}, please slow down the speed and try again`)
   }
 }
-
 getCount()
-
 const TABLENAME = 'erjigit17'
 const client = new Client({
   host: '127.0.0.1',
@@ -79,51 +76,43 @@ const client = new Client({
   password: '',
 })
 
+// const client = new Client("postgres://candidate:62I8anq3cFq5GYh2u4Lh@rc1c2m0keqdcncuwizmx.mdb.yandexcloud.net:6432/db1?ssl=true");
+
 function cleanDB() {
   client.connect()
   // drop and create DB
-  client
-    .query(
-      `DROP TABLE IF EXISTS ${TABLENAME};` +
-      `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
-            id SERIAL PRIMARY KEY,
-            name text,
-            body text
-          );`
-    )
-    .then((result) => console.log(result))
-    .catch((e) => console.error(e.stack))
+  let command = 
+    `DROP TABLE IF EXISTS ${TABLENAME};` +
+    `CREATE TABLE IF NOT EXISTS ${TABLENAME} (
+          id SERIAL PRIMARY KEY,
+          name text,
+          body text
+        );`
+  
+  client.query(command, (err, res) => {
+    if (err) throw err
+    console.log(res)
 
-  startWritingToDB()
+    startWritingToDB()
+  })
 }
 
 async function startWritingToDB(){
   arr.sort((a, b) => (a.id > b.id) ? 1 : -1)
-    let queryChunks =[], temp =[], count = 0;
-    for (let i = 0; i < characters; i++) {
-      temp.push(arr[i])
-      count++
-      if (count == 9 ) {
-        queryChunks.push(temp)
-        temp = []
-        count = 0
-      }
-    }
-    !temp? null : queryChunks.push(temp)
-    
-  for (const queryChunk of queryChunks) {
-      let command = `INSERT INTO ${TABLENAME} (name, body)VALUES${queryChunk
+  let command = `INSERT INTO ${TABLENAME} (name, body)VALUES${arr
     .map((item) =>
         `('${item.name}', '${JSON.stringify(item.body)}')`)
     .join(', ')};`
-    console.log(command)
 
-      // client
-      //   .query(command)
-      //   .then(res => console.log(res.rows[0]))
-      //   .catch(e => console.error(e.stack))
-  }
+  client.query(command, (err, res) => {
+    if (err) throw err
+    console.log(res.command, res.rowCount)
+    
+  })
+  {await sleep(50000)
+  client.end()}
 }
+
 
 
 
