@@ -32,8 +32,7 @@ function getCount(){
           parser()})
 }
 
-const sleep = (milliseconds) => {
-  return new Promise((resolve) => setTimeout(resolve, milliseconds))}
+
 
 let arr = []
 
@@ -99,6 +98,7 @@ function cleanDB() {
 
 async function startWritingToDB(){
   arr.sort((a, b) => (a.id > b.id) ? 1 : -1)
+  
   let command = `INSERT INTO ${TABLENAME} (name, body)VALUES${arr
     .map((item) =>
         `('${item.name}', '${JSON.stringify(item.body)}')`)
