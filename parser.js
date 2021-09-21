@@ -3,7 +3,7 @@ const https = require('https')
 const fs = require('fs')
 const config = require('./config')
 
-let characters = 0
+let characters = 2
 
 characters === 0 ? getCount() : parser()
 
@@ -51,19 +51,20 @@ async function parser() {
     }
     await sleep(3500)
     if (arr.length !== characters) {
-      console.log(`time's up, received only ${arr.length}  of ${characters}, please slow down the speed and try again`)
+      console.log(
+        `time's up, received only ${arr.length}  of ${characters}, 
+        please slow down the speed and try again`)
     } else { writeToFile() }
 }
 
-async function writeToFile(){
+function writeToFile(){
   arr.sort((a, b) => (a.id > b.id) ? 1 : -1)
-  const parseData = `{"characters": [${arr
-  .map(item => `{"id": ${item.id}, "name": "${item.name}"}`)
-  .join(', ')}]}`
 
-  // console.log(parseData)
-  fs.writeFileSync(path.join('./pasredData.json', console))
+  const parseData = `[${arr
+  .map(item => `{"id":${item.id},"name":"${item.name}","body":${JSON.stringify(item)}}`)
+  .join(', ')}]`
 
+  fs.writeFileSync('./pasredData.json', parseData)
 }
 
 function sleep(milliseconds){
