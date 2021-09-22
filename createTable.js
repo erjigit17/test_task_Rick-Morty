@@ -3,7 +3,6 @@
 const { Client } = require('pg')
 const config = require('./config')
 
-let successFlag = false
 const sqlQuery = `
   DROP TABLE IF EXISTS ${config.tableName};
   CREATE TABLE ${config.tableName} (

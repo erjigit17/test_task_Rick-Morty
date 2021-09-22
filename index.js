@@ -1,8 +1,8 @@
 'use strict'
 
-const createTable = require('./createTable')
-const getData = require('./getData')
-const putData = require('./putData')
+const createTable = require('./createTable.js'),
+      getData = require('./getData.js'),
+      putData = require('./putData.js')
 
 main()
 

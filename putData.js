@@ -15,9 +15,12 @@ function putData(characters){
   const sqlQuery = `
     INSERT INTO ${config.tableName} (name, body) VALUES ${values}; 
   `
+
   client.connect()
   client.query(sqlQuery, (err, result) =>{
-    console.log({err, result})
+    err? console.log(err) : null
+    result? console.log('INSERT', result.rowCount, 'row\'s') : null
+    
     client.end()
   })
 }
