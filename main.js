@@ -1,3 +1,4 @@
+'use strict'
 
 const createTable = require('./createTable')
 const getData = require('./getData')
